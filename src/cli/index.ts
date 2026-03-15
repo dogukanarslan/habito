@@ -5,6 +5,7 @@ import {
   listHabits,
   completeHabit,
   deleteHabit,
+  updateHabit,
   habitCompletions,
 } from "../core/habits.js";
 import { buildStats } from "../core/streaks.js";
@@ -95,6 +96,27 @@ const run = (): void => {
         const next = deleteHabit(data, args.id as string);
         saveData(next);
         console.log("Habit deleted.");
+      },
+    )
+    .command(
+      "update",
+      "Update a habit",
+      (args) =>
+        args
+          .option("id", {
+            type: "string",
+            demandOption: true,
+            describe: "Habit id",
+          })
+          .option("name", {
+            type: "string",
+            demandOption: true,
+            describe: "New habit name",
+          }),
+      (args) => {
+        const next = updateHabit(data, args.id as string, args.name as string);
+        saveData(next);
+        console.log("Habit updated.");
       },
     )
     .strict()

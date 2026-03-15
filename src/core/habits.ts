@@ -71,6 +71,25 @@ export const deleteHabit = (data: DataFile, habitId: HabitId): DataFile => {
   };
 };
 
+export const updateHabit = (
+  data: DataFile,
+  habitId: HabitId,
+  name: string
+): DataFile => {
+  const habit = findHabit(data, habitId);
+  const trimmed = name.trim();
+  if (trimmed.length === 0) {
+    throw new Error("Habit name cannot be empty");
+  }
+
+  return {
+    ...data,
+    habits: data.habits.map((item) =>
+      item.id === habit.id ? { ...item, name: trimmed } : item
+    )
+  };
+};
+
 export const habitCompletions = (
   data: DataFile,
   habitId: HabitId
