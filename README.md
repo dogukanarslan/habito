@@ -16,6 +16,7 @@ npm run dev -- list
 npm run dev -- done --id <habitId> --date 2026-03-10
 npm run dev -- stats
 npm run dev -- delete --id <habitId>
+npm run dev -- update --id <habitId> --name "New habit name"
 ```
 
 Build and run the compiled CLI:
