@@ -1,23 +1,23 @@
-import { loadData, saveData } from "../storage/file.js";
+import {
+  deleteHabitById,
+  insertCompletion,
+  insertHabit,
+  listCompletions,
+  listHabits,
+  updateHabitName
+} from "../storage/db.js";
 import {
   createHabit,
-  addHabit,
-  listHabits,
-  completeHabit,
-  deleteHabit,
-  updateHabit,
-  habitCompletions,
+  habitCompletions
 } from "../core/habits.js";
 import { buildStats } from "../core/streaks.js";
 import { printHabits, printStats } from "./print.js";
-import { toISODate } from "../utils/date.js";
+import { toISODate, todayISO } from "../utils/date.js";
 import yargs from "yargs/yargs";
 import { hideBin } from "yargs/helpers";
 
-const run = (): void => {
-  const data = loadData();
-
-  yargs(hideBin(process.argv))
+const run = async (): Promise<void> => {
+  await yargs(hideBin(process.argv))
     .scriptName("habito")
     .usage("Usage: $0 <command> [options]")
     .command(
@@ -29,19 +29,19 @@ const run = (): void => {
           demandOption: true,
           describe: "Habit name",
         }),
-      (args) => {
+      async (args) => {
         const habit = createHabit(args.name);
-        const next = addHabit(data, habit);
-        saveData(next);
+        const createdHabit = await insertHabit(habit);
         console.log(`Added habit: ${habit.name}`);
+        console.log(`Habit id: ${createdHabit.id}`);
       },
     )
     .command(
       "list",
       "List habits",
       () => undefined,
-      (args) => {
-        const habits = listHabits(data);
+      async () => {
+        const habits = await listHabits();
         printHabits(habits);
       },
     )
@@ -51,7 +51,7 @@ const run = (): void => {
       (args) =>
         args
           .option("id", {
-            type: "string",
+            type: "number",
             demandOption: true,
             describe: "Habit id",
           })
@@ -63,11 +63,10 @@ const run = (): void => {
             type: "string",
             describe: "Optional notes",
           }),
-      (args) => {
-        const date = args.date ? toISODate(args.date as string) : undefined;
+      async (args) => {
+        const date = args.date ? toISODate(args.date as string) : todayISO();
         const notes = args.notes ? (args.notes as string) : undefined;
-        const next = completeHabit(data, args.id as string, date, notes);
-        saveData(next);
+        await insertCompletion(args.id as number, date, notes);
         console.log("Marked complete.");
       },
     )
@@ -75,10 +74,14 @@ const run = (): void => {
       "stats",
       "Show habit stats",
       () => undefined,
-      () => {
-        const habits = listHabits(data);
+      async () => {
+        const [habits, completions] = await Promise.all([
+          listHabits(),
+          listCompletions()
+        ]);
+
         const stats = habits.map((habit) =>
-          buildStats(habit, habitCompletions(data, habit.id)),
+          buildStats(habit, habitCompletions(completions, habit.id))
         );
         printStats(stats);
       },
@@ -88,13 +91,12 @@ const run = (): void => {
       "Delete a habit",
       (args) =>
         args.option("id", {
-          type: "string",
+          type: "number",
           demandOption: true,
           describe: "Habit id",
         }),
-      (args) => {
-        const next = deleteHabit(data, args.id as string);
-        saveData(next);
+      async (args) => {
+        await deleteHabitById(args.id as number);
         console.log("Habit deleted.");
       },
     )
@@ -104,7 +106,7 @@ const run = (): void => {
       (args) =>
         args
           .option("id", {
-            type: "string",
+            type: "number",
             demandOption: true,
             describe: "Habit id",
           })
@@ -113,9 +115,9 @@ const run = (): void => {
             demandOption: true,
             describe: "New habit name",
           }),
-      (args) => {
-        const next = updateHabit(data, args.id as string, args.name as string);
-        saveData(next);
+      async (args) => {
+        const habit = createHabit(args.name as string);
+        await updateHabitName(args.id as number, habit.name);
         console.log("Habit updated.");
       },
     )
@@ -129,11 +131,11 @@ const run = (): void => {
       yargsInstance.showHelp();
       process.exit(1);
     })
-    .parse();
+    .parseAsync();
 };
 
 try {
-  run();
+  await run();
 } catch (error) {
   const message = error instanceof Error ? error.message : "Unknown error";
   console.error(message);

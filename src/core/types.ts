@@ -1,6 +1,6 @@
 export type ISODate = string;
 
-export type HabitId = string;
+export type HabitId = number;
 
 export type Habit = {
   id: HabitId;
@@ -8,14 +8,10 @@ export type Habit = {
   createdAt: string;
 };
 
+export type NewHabit = Pick<Habit, "name">;
+
 export type Completion = {
   habitId: HabitId;
   date: ISODate;
   notes?: string;
-};
-
-export type DataFile = {
-  version: number;
-  habits: Habit[];
-  completions: Completion[];
 };

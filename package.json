@@ -19,6 +19,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.2",
     "yargs": "^18.0.0"
   }
 }

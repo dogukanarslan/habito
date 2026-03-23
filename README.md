@@ -28,4 +28,4 @@ npm run start -- list
 
 Note: the `--` after `npm run dev` or `npm run start` forwards the rest of the arguments to the CLI.
 
-Data is stored at `~/.habito/habito-data.json`.
+Data is stored in a local libSQL/SQLite database at `~/.habito/habito.db`.

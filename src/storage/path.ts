@@ -6,5 +6,5 @@ export const dataDir = (): string => {
 };
 
 export const dataFilePath = (): string => {
-  return path.join(dataDir(), "habito-data.json");
+  return path.join(dataDir(), "habito.db");
 };
